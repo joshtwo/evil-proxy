@@ -103,7 +103,8 @@ class QuickCert
     Dir.mkdir File.join(@ca_config[:CA_dir], 'newcerts')
     Dir.mkdir File.join(@ca_config[:CA_dir], 'crl')
 
-    File.open @ca_config[:serial_file], 'w' do |f| f << "#{Time.now.to_i}" end
+    from = Time.now - 60 * 60 * 24
+    File.open @ca_config[:serial_file], 'w' do |f| f << "#{from}" end
 
     puts "Generating CA keypair" if $DEBUG
     keypair = OpenSSL::PKey::RSA.new @ca_config[:ca_rsa_key_length]
@@ -111,8 +112,8 @@ class QuickCert
     cert = OpenSSL::X509::Certificate.new
     name = @ca_config[:name].dup << ['CN', 'CA']
     cert.subject = cert.issuer = OpenSSL::X509::Name.new(name)
-    cert.not_before = Time.now
-    cert.not_after = Time.now + @ca_config[:ca_cert_days] * 24 * 60 * 60
+    cert.not_before = from
+    cert.not_after = from + @ca_config[:ca_cert_days] * 24 * 60 * 60
     cert.public_key = keypair.public_key
     cert.serial = 0x0
     cert.version = 2 # X509v3
@@ -262,7 +263,7 @@ class QuickCert
     puts "Generating cert" if $DEBUG
 
     cert = OpenSSL::X509::Certificate.new
-    from = Time.now
+    from = Time.now - 60 * 60 * 24
     cert.subject = csr.subject
     cert.issuer = ca.subject
     cert.not_before = from
