@@ -104,7 +104,6 @@ class QuickCert
     Dir.mkdir File.join(@ca_config[:CA_dir], 'crl')
 
     from = Time.now - 60 * 60 * 24
-    File.open @ca_config[:serial_file], 'w' do |f| f << "#{from}" end
 
     puts "Generating CA keypair" if $DEBUG
     keypair = OpenSSL::PKey::RSA.new @ca_config[:ca_rsa_key_length]
@@ -255,10 +254,7 @@ class QuickCert
     ca_keypair = OpenSSL::PKey::RSA.new File.read(@ca_config[:keypair_file]),
                                         @ca_config[:password]
 
-    serial = File.read(@ca_config[:serial_file]).chomp.hex
-    File.open @ca_config[:serial_file], "w" do |f|
-      f << "%04X" % (serial + 1)
-    end
+    serial = generate_serial_number
 
     puts "Generating cert" if $DEBUG
 
@@ -347,4 +343,11 @@ class QuickCert
     return cert_file, cert
   end
 
+  def generate_serial_number
+    serial = ''
+    16.times do
+      serial << '%02X' % rand(0x0..0xFF)
+    end
+    serial.hex
+  end
 end # class QuickCert
