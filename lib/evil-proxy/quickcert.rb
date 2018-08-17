@@ -304,6 +304,8 @@ class QuickCert
                               "Ruby/OpenSSL Generated Certificate")
     ex << ef.create_extension("subjectKeyIdentifier", "hash")
     #ex << ef.create_extension("nsCertType", "client,email")
+    # Chrome 58+ requires a Subject Alt Name and does not check the Common Name
+    ex << ef.create_extension("subjectAltName", "DNS:#{cert_config[:hostname]}")
     unless key_usage.empty? then
       ex << ef.create_extension("keyUsage", key_usage.join(","))
     end
